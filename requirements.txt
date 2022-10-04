@@ -1,0 +1,14 @@
+flask
+typing_extensions
+torch
+ipython
+scipy
+packaging
+phonemizer
+unidecode
+inflect
+pyworld
+librosa
+matplotlib
+pymongo
+python-dotenv
