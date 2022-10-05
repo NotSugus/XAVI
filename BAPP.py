@@ -1,14 +1,7 @@
 import os
 from dotenv import (load_dotenv, find_dotenv)
 
-import flask
-from flask import request, jsonify
-
-import nemo.collections.asr as nemo_asr
-
-from io import BytesIO
-import soundfile as sf
-import uuid
+from flask import Flask,request, jsonify
 
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -31,23 +24,12 @@ MONGO_COL = os.getenv('MONGO_COL')
 STT_ENDPOINT_HOST = os.getenv('STT_ENDPOINT')
 STT_ENDPOINT_PORT = os.getenv('STT_ENDPOINT_PORT')
 
-app = flask.Flask('TextToSpeech')
+app = Flask('SpeechToText')
 
+path = "."
 
-#==== PARA USO EN GOOGLE COLAB ====#
-GOOGLE_CLOUD = False # False si no se utiliza google colab
-if GOOGLE_CLOUD:
-    from google.colab import drive
-    
-    drive.mount('/content/drive')
-    path = "/content/drive/My Drive/nds_nemo"
-    
-else:
-    path = "."
-
-
-#=== Modelo de ASR que traduce en español e ingles ====#
-asr_model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="stt_enes_conformer_transducer_large")
+#==== Importar modelos de TTS ====#
+import dummyTTS
 
 #==== Accesos de google cloud storage ====#
 key_json_filename = fr'{path}/config/{GCP_ACC}'
