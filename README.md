@@ -1,11 +1,11 @@
-## este repo es para reorganizar todos los avances que he hecho pero tengo en tres lugares.
+## Estado actual
 
-ya tengo todo en un mismo repo. seguramente tengo que corregir los scripts de la app (repo TTS, en el system append)
+Ya tenemos la parte de variables bien puesta, ahora es reajustar el codigo a mi app
 
-Directorio Xavi preparado
+la funcion de readAudio lee audio? o lee un string. pq para mi debe de leer el string. Luce como que lee algo en .wav y eso no me va
 
-eliminar vm y reinstalar una con conda?
+toca comentar la funcion y ver si la puedo retunear para la parte de publicar el wav de salida
 
-copiar repo de dani, y actualizar los contenidos
+btw modifica el path del blob, pq apunta a lo de Dani
 
-los archivos mas importantes a tener son requirements, funciones tts y arquitectura de la app en flask. ya hubieron pocs para conexion con seridores.
+tengo que leer las reglas caray, pq seguro lo tengo mal (pero funcional)
