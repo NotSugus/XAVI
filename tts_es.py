@@ -6,7 +6,7 @@ import time
 import IPython
 import scipy
 
-sys.path.append('TTS_repo')
+sys.path.append('TTS')
 from TTS.tts.utils.generic_utils import setup_model
 from TTS.utils.io import load_config
 from TTS.tts.utils.text.symbols import symbols, phonemes
@@ -96,3 +96,5 @@ vocoder_model.eval();
 
 def AUDIO_ES(sentence):
     align, spec, stop_tokens, wav = tts(model, sentence, TTS_CONFIG, use_cuda, ap, use_gl=False, figures=True)
+
+AUDIO_ES("esto es un string")

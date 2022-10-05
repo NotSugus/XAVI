@@ -1,42 +1,141 @@
-from pyexpat.errors import messages
-from flask import Flask
-from flask import request
-import collections
+import os
+from dotenv import (load_dotenv, find_dotenv)
+
+import flask
+from flask import request, jsonify
+
+import nemo.collections.asr as nemo_asr
+
+from io import BytesIO
+import soundfile as sf
+import uuid
+
+from google.cloud import storage
+from google.oauth2 import service_account
+
+import pymongo
 from pymongo import MongoClient
-from tts_es import AUDIO_ES
-from tts_en import AUDIO_EN
+import bson.json_util as json_util
+import datetime
 
-mongo_uri = 'mongodb://localhost:27017'
-client = MongoClient(mongo_uri)
+#==== Cargando variables de entorno ====#
+DOTENV = os.environ.get('DOTENV', find_dotenv())
+load_dotenv(DOTENV, override=True)
 
-db = client['appdb']
-col = db['users']
+BUCKET_NAME = os.getenv('BUCKET_NAME')
+GCP_ACC = os.getenv('GCP_ACC')
+MONGO_URI = os.getenv('MONGO_URI')
+MONGO_ACC = os.getenv('MONGO_ACC')
+MONGO_DB = os.getenv('MONGO_DB')
+MONGO_COL = os.getenv('MONGO_COL')
+STT_ENDPOINT_HOST = os.getenv('STT_ENDPOINT')
+STT_ENDPOINT_PORT = os.getenv('STT_ENDPOINT_PORT')
 
-app = Flask(__name__)
+app = flask.Flask('TextToSpeech')
 
-@app.route('/')
-def home():
-    print("Home Page in")
-    return("Home page")
 
-@app.route('/esp/<id>')
-def users_action(id):
-    results = col.find({'id': int(id)})
-    for n in results:
-        message = n['message']
-        print("Message id: " + id)
-        print("Mensaje a procesar: " + message)
-    AUDIO_ES(message)
-    return("Audio generado")
+#==== PARA USO EN GOOGLE COLAB ====#
+GOOGLE_CLOUD = False # False si no se utiliza google colab
+if GOOGLE_CLOUD:
+    from google.colab import drive
+    
+    drive.mount('/content/drive')
+    path = "/content/drive/My Drive/nds_nemo"
+    
+else:
+    path = "."
 
-@app.route('/eng/<id>')
-def users_action(id):
-    results = col.find({'id': int(id)})
-    for n in results:
-        message = n['message']
-        print("Message id: " + id)
-        print("Mensaje a procesar: " + message)
-    AUDIO_ES(message)
-    return("Audio generado")
 
-app.run(host = '0.0.0.0',debug=True)
+#=== Modelo de ASR que traduce en español e ingles ====#
+asr_model = nemo_asr.models.EncDecRNNTBPEModel.from_pretrained(model_name="stt_enes_conformer_transducer_large")
+
+#==== Accesos de google cloud storage ====#
+key_json_filename = fr'{path}/config/{GCP_ACC}'
+credentials = service_account.Credentials.from_service_account_file(
+    key_json_filename,
+)
+gcs_client = storage.Client(
+    project = credentials.project_id,
+    credentials = credentials
+)
+bucket = gcs_client.get_bucket(BUCKET_NAME)
+
+#==== Accesos de Mongo ====#
+client = MongoClient(MONGO_URI,
+                    tls=True,
+                    tlsCertificateKeyFile=f"{path}/config/{MONGO_ACC}")
+db = client[MONGO_DB]
+collection = db[MONGO_COL]
+
+
+def readAudio(language, audio):
+    """
+    Lee el audio que se encuentra en GCP
+    """
+    filename = fr"{language}/1/{audio}.wav"
+    blob = bucket.blob(filename)
+    file_obj = BytesIO()
+    file_as_string = blob.download_to_file(file_obj)
+    file_obj.seek(0)
+    content_bytes = file_obj.read()
+    with open('input.wav', 'wb') as f:
+        f.write(content_bytes)
+    
+
+def getText(filename):
+    """
+    Obtiene el texto del audio descargado
+    """
+    for name, text in zip([filename], asr_model.transcribe(paths2audio_files=[filename])):
+        print(f"Audio {name} reconoció el siguiente texto:", text)
+
+    text_id = str(uuid.uuid4())
+    return text, text_id
+
+
+def generateJson(user_id, language, filename, text):
+    val = {'user_id': user_id,
+           'uploadDate': datetime.datetime.utcnow(),
+           'language': language,
+           'filename': fr'gs://{BUCKET_NAME}/{filename}',
+           'textIn': text,
+           'stage': 2}
+    return val
+
+
+def uploadText(language, text_id, text, user_id):
+    """
+    Sube el texto obtenido a GCP
+    """
+    filename = fr"{language}/2/{text_id}.txt"
+    blob = bucket.blob(filename)
+    blob.upload_from_string(text)
+
+    dictionary = generateJson(user_id, language, filename, text)
+    val = dictionary
+    collection.insert_one(val)
+    return dictionary
+
+
+@app.route('/', methods=["GET"])
+def get_tts():
+    query_parameters = request.args
+    user_id = query_parameters.get('UserID')
+    audio_id = query_parameters.get('AudioID')
+    #lang = query_parameters.get('language')
+    lang = "english"
+
+    # Leyendo el audio .wav
+    readAudio(lang, audio_id)
+
+    # Obteniendo el transcript
+    transcript, text_id = getText('input.wav')
+
+    # Otebiendo el Json de salida
+    value = uploadText(lang, text_id, transcript, user_id)
+
+    resp = json_util.dumps(value)
+    return resp
+
+if __name__ == "__main__":
+    app.run(host= STT_ENDPOINT_HOST, port= STT_ENDPOINT_PORT, debug=True)
