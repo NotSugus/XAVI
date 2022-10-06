@@ -6,6 +6,9 @@ from flask import Flask,request, jsonify
 from google.cloud import storage
 from google.oauth2 import service_account
 
+from io import BytesIO
+import uuid
+
 import pymongo
 from pymongo import MongoClient
 import bson.json_util as json_util
@@ -50,26 +53,40 @@ db = client[MONGO_DB]
 collection = db[MONGO_COL]
 
 
-def readAudio(language, audio):
+def readText(language, text):
     """
-    Lee el audio que se encuentra en GCP
+    Lee el texto que se encuentra en GCP
     """
-    filename = fr"{language}/1/{audio}.wav"
+    filename = fr"{language}/3/{text}.txt"                  
     blob = bucket.blob(filename)
     file_obj = BytesIO()
     file_as_string = blob.download_to_file(file_obj)
     file_obj.seek(0)
     content_bytes = file_obj.read()
-    with open('input.wav', 'wb') as f:
+    with open('input.txt', 'wb') as f:                      
         f.write(content_bytes)
     
 
-def getText(filename):
+def getAudioEng(filename,language):
     """
-    Obtiene el texto del audio descargado
+    Genera el audio del texto descargado
     """
-    for name, text in zip([filename], asr_model.transcribe(paths2audio_files=[filename])):
-        print(f"Audio {name} reconoció el siguiente texto:", text)
+    for name, text in zip([filename], dummyTTS.TTS_EN()):
+        print(f"Audio en ingles {name} generado a partir de input: {text}")
+
+    text_id = str(uuid.uuid4())
+    return text, text_id
+
+def getAudio(filename,language):
+    """
+    Genera el audio del texto descargado
+    """
+    if language == "spanish":
+        for name, text in zip([filename], dummyTTS.TTS_ESP()):
+            print(f"Audio en español {name} generado a partir de input: {text}")
+    elif language == "english":
+        for name, text in zip([filename], dummyTTS.TTS_ESP()):
+            print(f"Audio en ingles {name} generado a partir de input: {text}")
 
     text_id = str(uuid.uuid4())
     return text, text_id
@@ -80,20 +97,20 @@ def generateJson(user_id, language, filename, text):
            'uploadDate': datetime.datetime.utcnow(),
            'language': language,
            'filename': fr'gs://{BUCKET_NAME}/{filename}',
-           'textIn': text,
-           'stage': 2}
+           'audioOut': text,                                    #cambio de nombre para evitar confusiones
+           'stage': 4}
     return val
 
 
-def uploadText(language, text_id, text, user_id):
+def uploadAudio(language, audio_id, audio, user_id):
     """
-    Sube el texto obtenido a GCP
+    Sube el audio obtenido a GCP
     """
-    filename = fr"{language}/2/{text_id}.txt"
+    filename = fr"{language}/4/{audio_id}.wav"
     blob = bucket.blob(filename)
-    blob.upload_from_string(text)
+    blob.upload_from_string(audio)
 
-    dictionary = generateJson(user_id, language, filename, text)
+    dictionary = generateJson(user_id, language, filename, audio)
     val = dictionary
     collection.insert_one(val)
     return dictionary
@@ -108,13 +125,13 @@ def get_tts():
     lang = "english"
 
     # Leyendo el audio .wav
-    readAudio(lang, audio_id)
+    readText(lang, audio_id)
 
     # Obteniendo el transcript
-    transcript, text_id = getText('input.wav')
+    transcript, text_id = getAudio('input.txt',lang)
 
     # Otebiendo el Json de salida
-    value = uploadText(lang, text_id, transcript, user_id)
+    value = uploadAudio(lang, text_id, transcript, user_id)
 
     resp = json_util.dumps(value)
     return resp
