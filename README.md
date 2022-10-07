@@ -26,6 +26,8 @@ En estas tres secciones, la estructura de la aplicacion es basicamente la misma.
 
 El lenguaje de funcionamiento de la app sigue "hardocodeado" a ingles. Cabe destacar que en la app STT no afecta este hecho, pues se utiliza un modelo bilingüe. No obstante, TTS utiliza dos modelos por separado, donde el lenguaje del payload afecta la seleccion de modelo.
 
+Hay un script dummy para los modelos TTS. Ignorar este archivo, pues es un "calientabancas" para los modelos verdaderos (se introdujo para reducir posibles errores durante el desarrollo de la app).
+
 ### PAYLOAD
 
 NOTA: Falta por confirmar el formato final del json schema.
