@@ -1,11 +1,80 @@
-## Estado actual
+# TTS ENDPOINT
 
-Ya tenemos la parte de variables bien puesta, ahora es reajustar el codigo a mi app
+El endpoint TTS de la aplicación TTS es un espejo del (endpoint STT)[https://git.ndscognitivelabs.com/estancia-profesional-itesm/experiencia-2-nvidia-chatbot/backend/-/tree/master/endpoint_stt]. La logica es la misma para *GCP, MONGO y el payload* con algunos cambios en funcionalidad.
 
-la funcion de readAudio lee audio? o lee un string. pq para mi debe de leer el string. Luce como que lee algo en .wav y eso no me va
+## ESPECIFICACIONES
 
-toca comentar la funcion y ver si la puedo retunear para la parte de publicar el wav de salida
+### ESTRUCTURA PROYECTO
 
-btw modifica el path del blob, pq apunta a lo de Dani
+Los archivos principales del proyecto son los siguientes:
 
-tengo que leer las reglas caray, pq seguro lo tengo mal (pero funcional)
+* *config* es el directorio donde se encuentran los certificados para conectarse a GCP y MONGO, asi como configuraciones para el modelo TTS en español
+
+* *TTS* es el directorio con dependencias del modelo TTS en español
+
+* Los archivos con inicio *tts_* son los modelos TTS en ambos lenguajes.
+
+### APP
+
+La estructura basica de la app se divide en tres secciones:
+
+1. Dependencias y credenciales
+2. Funciones de programa
+3. App de flask
+
+En estas tres secciones, la estructura de la aplicacion es basicamente la misma. El unico cambio es en el nombre de variables y archivos de input y output, para reflejar las distintas funciones de las apps.
+
+El lenguaje de funcionamiento de la app sigue "hardocodeado" a ingles. Cabe destacar que en la app STT no afecta este hecho, pues se utiliza un modelo bilingüe. No obstante, TTS utiliza dos modelos por separado, donde el lenguaje del payload afecta la seleccion de modelo.
+
+### PAYLOAD
+
+NOTA: Falta por confirmar el formato del json schema
+
+*Formato de payload de entrada:*
+
+```
+{
+    "UserID": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
+    "AudioID": "016c4b5a-5a24-4b6b-a72b-c4375870b598",
+    "SesionID": "uuid",
+    "language": "english"
+}
+```
+
+*Formato de payload de entrada:*
+
+```
+{
+    "user_id": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
+    "uploadDate": {
+        "$date": "2022-10-06T08:21:29.923Z"
+    },
+    "language": "english",
+    "filename": "gs://bucket-nds-stt-endpoint/english/4/0ddf3f8d-f0d1-4d4c-8e13-3da163d30a86.wav",
+    "audioOut": " i also need to learn how to manage my work load",
+    "stage": 4,
+    "_id": {
+        "$oid": "633e9009c4f12d25a0193e98"
+    }
+}
+```
+
+## Servicios en la nube
+
+### GCP
+
+El formato de los directorios a utilizar sigue siendo "language/stage/uuid.extension". Por ejemplo: english/2/0ddf3f8d-f0d1-4d4c-8e13-3da163d30a86.txt
+
+Los stages para TTS son 3 y 4, en ambos idiomas.
+
+### MONGO
+
+La coleccion utilizada es "texto-audio". El formato es prácticamente el mismo que en STT.
+
+### CREDENCIALES
+
+Las credenciales se ubican en la carpeta config. El programa corre sin la necesidad de acciones adicionales. Los archivos son:
+
+* *mongo_db_certificate.pem* para MONGO
+
+* *nds-proyecto-123-credentials.json* para GCP

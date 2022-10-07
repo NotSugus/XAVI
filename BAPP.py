@@ -52,7 +52,7 @@ client = MongoClient(MONGO_URI,
 db = client[MONGO_DB]
 collection = db[MONGO_COL]
 
-
+#===== Funciones del programa =====#
 def readText(language, text):
     """
     Lee el texto que se encuentra en GCP
@@ -65,17 +65,7 @@ def readText(language, text):
     content_bytes = file_obj.read()
     with open('input.txt', 'wb') as f:                      
         f.write(content_bytes)
-    
 
-def getAudioEng(filename,language):
-    """
-    Genera el audio del texto descargado
-    """
-    for name, text in zip([filename], dummyTTS.TTS_EN()):
-        print(f"Audio en ingles {name} generado a partir de input: {text}")
-
-    text_id = str(uuid.uuid4())
-    return text, text_id
 
 def getAudio(filename,language):
     """
@@ -97,7 +87,7 @@ def generateJson(user_id, language, filename, text):
            'uploadDate': datetime.datetime.utcnow(),
            'language': language,
            'filename': fr'gs://{BUCKET_NAME}/{filename}',
-           'audioOut': text,                                    #cambio de nombre para evitar confusiones
+           'audioOut': text,                                    #cambio de nombre para evitar confusiones?
            'stage': 4}
     return val
 
@@ -118,23 +108,30 @@ def uploadAudio(language, audio_id, audio, user_id):
 
 @app.route('/', methods=["GET"])
 def get_tts():
-    query_parameters = request.args
-    user_id = query_parameters.get('UserID')
-    audio_id = query_parameters.get('AudioID')
-    #lang = query_parameters.get('language')
-    lang = "english"
+    try:
+        # Obteniendo el json del payload
+        query_parameters = request.json
+    
+        user_id = query_parameters.get('UserID')
+        audio_id = query_parameters.get('AudioID')
+        sesh_id = query_parameters.get('SesionID')
+        lang = query_parameters.get('language')
+        #lang = 'english'
 
-    # Leyendo el audio .wav
-    readText(lang, audio_id)
 
-    # Obteniendo el transcript
-    transcript, text_id = getAudio('input.txt',lang)
+        # Leyendo el audio .wav
+        readText(lang, audio_id)
 
-    # Otebiendo el Json de salida
-    value = uploadAudio(lang, text_id, transcript, user_id)
+        # Obteniendo el transcript
+        transcript, text_id = getAudio('input.txt',lang)
 
-    resp = json_util.dumps(value)
-    return resp
+        # Otebiendo el Json de salida
+        value = uploadAudio(lang, text_id, transcript, user_id)
+
+        resp = json_util.dumps(value)
+        return resp
+    except RuntimeError:
+        print("Runtime Error")
 
 if __name__ == "__main__":
     app.run(host= STT_ENDPOINT_HOST, port= STT_ENDPOINT_PORT, debug=True)
