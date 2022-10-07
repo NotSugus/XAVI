@@ -36,9 +36,8 @@ NOTA: Falta por confirmar el formato final del json schema.
 
 ```
 {
-    "UserID": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
-    "TextID": "016c4b5a-5a24-4b6b-a72b-c4375870b598",
-    "SesionID": "uuid",
+    "text_id": "016c4b5a-5a24-4b6b-a72b-c4375870b598",
+    "session_id": "uuid",
     "language": "english"
 }
 ```
@@ -54,7 +53,7 @@ NOTA: Falta por confirmar el formato final del json schema.
     "language": "english",
     "filename": "gs://bucket-nds-stt-endpoint/english/4/0ddf3f8d-f0d1-4d4c-8e13-3da163d30a86.wav",
     "audioOut": " i also need to learn how to manage my work load",
-    "stage": 4,
+    "stage": "audio generado",
     "_id": {
         "$oid": "633e9009c4f12d25a0193e98"
     }

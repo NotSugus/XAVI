@@ -96,5 +96,3 @@ vocoder_model.eval();
 
 def AUDIO_ES(sentence):
     align, spec, stop_tokens, wav = tts(model, sentence, TTS_CONFIG, use_cuda, ap, use_gl=False, figures=True)
-
-AUDIO_ES("esto es un string")

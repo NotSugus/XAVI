@@ -33,6 +33,17 @@ path = "."
 
 #==== Importar modelos de TTS ====#
 import dummyTTS
+import soundfile as sf
+from nemo.collections.tts.models.base import SpectrogramGenerator, Vocoder
+
+spec_generator = SpectrogramGenerator.from_pretrained(model_name="tts_en_fastpitch").cuda()
+vocoder = Vocoder.from_pretrained(model_name="tts_hifigan").cuda()
+
+def AUDIO_EN(sentence):
+    parsed = spec_generator.parse(sentence)
+    spectrogram = spec_generator.generate_spectrogram(tokens=parsed)
+    audio = vocoder.convert_spectrogram_to_audio(spec=spectrogram)
+    sf.write("answer.wav", audio.to('cpu').detach().numpy()[0], 22050)
 
 #==== Accesos de google cloud storage ====#
 key_json_filename = fr'{path}/config/{GCP_ACC}'
@@ -53,11 +64,11 @@ db = client[MONGO_DB]
 collection = db[MONGO_COL]
 
 #===== Funciones del programa =====#
-def readText(language, text):
+def readText(language, text_id):
     """
     Lee el texto que se encuentra en GCP
     """
-    filename = fr"{language}/3/{text}.txt"                  
+    filename = fr"{language}/3/{text_id}.txt"                  
     blob = bucket.blob(filename)
     file_obj = BytesIO()
     file_as_string = blob.download_to_file(file_obj)
@@ -75,8 +86,8 @@ def getAudio(filename,language):
         for name, text in zip([filename], dummyTTS.TTS_ESP()):
             print(f"Audio en español {name} generado a partir de input: {text}")
     elif language == "english":
-        for name, text in zip([filename], dummyTTS.TTS_ESP()):
-            print(f"Audio en ingles {name} generado a partir de input: {text}")
+        for name, text in zip([filename], AUDIO_EN(text)):
+            print(f"Audio en ingles {name} generado a partir de input: {text}")     #sale el texto de entrada?
 
     text_id = str(uuid.uuid4())
     return text, text_id
@@ -87,20 +98,20 @@ def generateJson(user_id, language, filename, text):
            'uploadDate': datetime.datetime.utcnow(),
            'language': language,
            'filename': fr'gs://{BUCKET_NAME}/{filename}',
-           'audioOut': text,                                    #cambio de nombre para evitar confusiones?
-           'stage': 4}
+           'audioOut': text,                                    
+           'stage': 'audio generado'}
     return val
 
 
-def uploadAudio(language, audio_id, audio, user_id):
+def uploadAudio(language, text_id, audio, session_id):
     """
     Sube el audio obtenido a GCP
     """
-    filename = fr"{language}/4/{audio_id}.wav"
+    filename = fr"{language}/4/{text_id}.wav"
     blob = bucket.blob(filename)
     blob.upload_from_string(audio)
 
-    dictionary = generateJson(user_id, language, filename, audio)
+    dictionary = generateJson(session_id, language, filename, audio)
     val = dictionary
     collection.insert_one(val)
     return dictionary
@@ -111,22 +122,19 @@ def get_tts():
     try:
         # Obteniendo el json del payload
         query_parameters = request.json
-    
-        user_id = query_parameters.get('UserID')
-        audio_id = query_parameters.get('AudioID')
-        sesh_id = query_parameters.get('SesionID')
-        lang = query_parameters.get('language')
-        #lang = 'english'
+        text_id = query_parameters.get('text_id')
+        session_id = query_parameters.get('session_id')
+        #lang = query_parameters.get('language')
+        lang = 'english'
 
-
-        # Leyendo el audio .wav
-        readText(lang, audio_id)
+        # Leyendo el texto .txt
+        readText(lang, text_id)
 
         # Obteniendo el transcript
         transcript, text_id = getAudio('input.txt',lang)
 
         # Otebiendo el Json de salida
-        value = uploadAudio(lang, text_id, transcript, user_id)
+        value = uploadAudio(lang, text_id, transcript, session_id)
 
         resp = json_util.dumps(value)
         return resp
