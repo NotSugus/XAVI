@@ -82,15 +82,15 @@ def getAudio(filename,language):
     """
     Genera el audio del texto descargado
     """
-    if language == "spanish":
-        for name, text in zip([filename], dummyTTS.TTS_ESP()):
-            print(f"Audio en español {name} generado a partir de input: {text}")
-    elif language == "english":
-        for name, text in zip([filename], AUDIO_EN(text)):
-            print(f"Audio en ingles {name} generado a partir de input: {text}")     #sale el texto de entrada?
+    # if language == "spanish":
+    #     for name, text in zip([filename], dummyTTS.TTS_ESP()):
+    #         print(f"Audio en español {name} generado a partir de input: {text}")
+    # elif language == "english":
+    #     for name, text in zip([filename], AUDIO_EN(text)):
+    #         print(f"Audio en ingles {name} generado a partir de input: {text}")     #sale el texto de entrada?
 
-    text_id = str(uuid.uuid4())
-    return text, text_id
+    audio_id = str(uuid.uuid4())
+    return audio, audio_id
 
 
 def generateJson(user_id, language, filename, text):
@@ -131,10 +131,10 @@ def get_tts():
         readText(lang, text_id)
 
         # Obteniendo el transcript
-        transcript, text_id = getAudio('input.txt',lang)
+        audio, audio_id = getAudio('input.txt',lang)
 
         # Otebiendo el Json de salida
-        value = uploadAudio(lang, text_id, transcript, session_id)
+        value = uploadAudio(lang, text_id, audio, session_id)
 
         resp = json_util.dumps(value)
         return resp
