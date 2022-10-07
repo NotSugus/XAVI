@@ -28,14 +28,14 @@ El lenguaje de funcionamiento de la app sigue "hardocodeado" a ingles. Cabe dest
 
 ### PAYLOAD
 
-NOTA: Falta por confirmar el formato del json schema
+NOTA: Falta por confirmar el formato final del json schema.
 
 *Formato de payload de entrada:*
 
 ```
 {
     "UserID": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
-    "AudioID": "016c4b5a-5a24-4b6b-a72b-c4375870b598",
+    "TextID": "016c4b5a-5a24-4b6b-a72b-c4375870b598",
     "SesionID": "uuid",
     "language": "english"
 }
@@ -63,9 +63,9 @@ NOTA: Falta por confirmar el formato del json schema
 
 ### GCP
 
-El formato de los directorios a utilizar sigue siendo "language/stage/uuid.extension". Por ejemplo: english/2/0ddf3f8d-f0d1-4d4c-8e13-3da163d30a86.txt
+El formato de los directorios a utilizar sigue siendo "language/stage/uuid.extension". Por ejemplo: english/3/0ddf3f8d-f0d1-4d4c-8e13-3da163d30a86.txt
 
-Los stages para TTS son 3 y 4, en ambos idiomas.
+Los stages para TTS son 3 y 4, en ambos idiomas. El stage 3 es utilizado para el input .txt del TTS, mientras que el stage 4 es para los archivos .wav de salida.
 
 ### MONGO
 
