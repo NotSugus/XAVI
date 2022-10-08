@@ -91,12 +91,11 @@ def getAudio(text_file,language):
     #         print(f"Audio en español {name} generado a partir de input: {text}")
     return audio_id 
 
-def generateJson(user_id, language, filename, audio_transcript):
-    val = {'user_id': user_id,
+def generateJson(session_id, gcp_filename, language):
+    val = {'user_id': session_id,
            'uploadDate': datetime.datetime.utcnow(),
            'language': language,
-           'filename': fr'gs://{BUCKET_NAME}/{filename}',
-           'audioOut': audio_transcript,                                    
+           'filename': fr'gs://{BUCKET_NAME}/{gcp_filename}',                                    
            'stage': 'audio generado'}
     return val
 
@@ -105,15 +104,15 @@ def uploadAudio(language, audio_id, session_id):
     """
     Sube el audio obtenido a GCP
     """
-    # gcp_filename = fr"{language}/4/{text_id}.wav"
-    #audio_file = f"{audio_id}.wav"
-    # blob = bucket.blob(filename)
-    # blob.upload_from_string(audio_file)
+    gcp_filename = fr"{language}/4/{audio_id}.wav"
+    audio_file = f"{audio_id}.wav"
+    blob = bucket.blob(gcp_filename)
+    blob.upload_from_file(audio_file)
 
-    # dictionary = generateJson(session_id, language, gcp_filename, audio_transcript)
-    # val = dictionary
-    # collection.insert_one(val)
-    # return dictionary
+    dictionary = generateJson(session_id, gcp_filename, language)
+    val = dictionary
+    collection.insert_one(val)
+    return dictionary
 
 
 @app.route('/', methods=["GET"])
