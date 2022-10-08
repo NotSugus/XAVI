@@ -16,3 +16,4 @@ google-api-core
 google-auth
 google-cloud-core
 google-cloud-storage
+nemo_toolkit[all]
