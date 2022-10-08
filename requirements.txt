@@ -10,10 +10,11 @@ inflect
 pyworld
 librosa
 matplotlib
-pymongo
+pymongo[srv]
 python-dotenv
 google-api-core
 google-auth
 google-cloud-core
 google-cloud-storage
 nemo_toolkit[all]
+pynini

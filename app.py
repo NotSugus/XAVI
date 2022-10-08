@@ -39,8 +39,6 @@ from nemo.collections.tts.models.base import SpectrogramGenerator, Vocoder
 spec_generator = SpectrogramGenerator.from_pretrained(model_name="tts_en_fastpitch").cuda()
 vocoder = Vocoder.from_pretrained(model_name="tts_hifigan").cuda()
 
-
-
 #==== Accesos de google cloud storage ====#
 key_json_filename = fr'{path}/config/{GCP_ACC}'
 credentials = service_account.Credentials.from_service_account_file(
@@ -72,7 +70,8 @@ def readText(text_id, language):
     content_bytes = file_obj.read()
     with open('input.txt', 'wb') as f:                      
         f.write(content_bytes)
-        text = f.readlines()
+    with open('input.txt', 'rb') as f:
+        text = f.readline()
         return text
 
 
@@ -85,7 +84,7 @@ def getAudio(text_id,language):
 
     audio_id = str(uuid.uuid4())
     if language == "english":
-        parsed = spec_generator.parse(text)
+        parsed = spec_generator.parse(f"{text}")
         spectrogram = spec_generator.generate_spectrogram(tokens=parsed)
         audio = vocoder.convert_spectrogram_to_audio(spec=spectrogram)
         sf.write(f"{audio_id}.wav", audio.to('cpu').detach().numpy()[0], 22050)
@@ -110,7 +109,7 @@ def uploadAudio(language, audio_id, session_id):
     gcp_filename = fr"{language}/4/{audio_id}.wav"
     audio_file = f"{audio_id}.wav"
     blob = bucket.blob(gcp_filename)
-    blob.upload_from_file(audio_file)
+    blob.upload_from_filename(audio_file)             #it is uploading the file name, not the file.
 
     dictionary = generateJson(session_id, gcp_filename, language)
     val = dictionary
