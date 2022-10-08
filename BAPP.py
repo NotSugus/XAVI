@@ -72,14 +72,17 @@ def readText(text_id, language):
     content_bytes = file_obj.read()
     with open('input.txt', 'wb') as f:                      
         f.write(content_bytes)
+        text = f.readlines()
+        return text
 
 
-def getAudio(text_file,language):
+def getAudio(text_id,language):
     """
     Genera el audio del texto descargado
     """
     # Leyendo el texto .txt
-    text = readText(text_file,language)
+    text = readText(text_id,language)
+
     audio_id = str(uuid.uuid4())
     if language == "english":
         parsed = spec_generator.parse(text)
@@ -126,7 +129,7 @@ def get_tts():
         lang = 'english'
 
         # Obteniendo el audio
-        audio_id = getAudio('input.txt',lang)
+        audio_id = getAudio(text_id,lang)
 
         # Otebiendo el Json de salida
         value = uploadAudio(lang, audio_id, session_id)
