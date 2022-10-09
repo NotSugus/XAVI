@@ -36,6 +36,8 @@ import dummyTTS
 import soundfile as sf
 from nemo.collections.tts.models.base import SpectrogramGenerator, Vocoder
 
+import tts_es
+
 spec_generator = SpectrogramGenerator.from_pretrained(model_name="tts_en_fastpitch").cuda()
 vocoder = Vocoder.from_pretrained(model_name="tts_hifigan").cuda()
 
@@ -88,10 +90,9 @@ def getAudio(text_id,language):
         spectrogram = spec_generator.generate_spectrogram(tokens=parsed)
         audio = vocoder.convert_spectrogram_to_audio(spec=spectrogram)
         sf.write(f"{audio_id}.wav", audio.to('cpu').detach().numpy()[0], 22050)
-    # elif language == "spanish":
-    #     for name, text in zip([filename], dummyTTS.TTS_ESP()):
-    #         print(f"Audio en español {name} generado a partir de input: {text}")
-    return audio_id 
+    elif language == "spanish":
+        tts_es.AUDIO_ES(text,audio_id)
+    return audio_id
 
 def generateJson(session_id, gcp_filename, language):
     val = {'user_id': session_id,

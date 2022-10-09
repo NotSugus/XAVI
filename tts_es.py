@@ -22,7 +22,7 @@ def interpolate_vocoder_input(scale_factor, spec):
     print(" > after interpolation :", spec.shape)
     return spec
 
-def tts(model, text, CONFIG, use_cuda, ap, use_gl, figures=True):
+def tts(model, text, CONFIG, use_cuda, ap, audio_id, use_gl):
     t_1 = time.time()
     waveform, alignment, mel_spec, mel_postnet_spec, stop_tokens, inputs = synthesis(model, text, CONFIG, use_cuda, ap, speaker_id, style_wav=None,
                                                                             truncated=False, enable_eos_bos_chars=CONFIG.enable_eos_bos_chars)
@@ -41,7 +41,7 @@ def tts(model, text, CONFIG, use_cuda, ap, use_gl, figures=True):
     if not use_gl:
         waveform = waveform.numpy()
     waveform = waveform.squeeze()
-    scipy.io.wavfile.write("response.wav",target_sr, waveform)
+    scipy.io.wavfile.write(fr"{audio_id}.wav",target_sr, waveform)
     return alignment, mel_postnet_spec, stop_tokens, waveform
 
 use_cuda = False
@@ -94,5 +94,5 @@ if use_cuda:
     vocoder_model.cuda()
 vocoder_model.eval();
 
-def AUDIO_ES(sentence):
-    align, spec, stop_tokens, wav = tts(model, sentence, TTS_CONFIG, use_cuda, ap, use_gl=False, figures=True)
+def AUDIO_ES(text,audio_id):
+    align, spec, stop_tokens, wav = tts(model, text, TTS_CONFIG, use_cuda, ap, audio_id, use_gl=False)
