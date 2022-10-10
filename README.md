@@ -26,7 +26,7 @@ En estas tres secciones, la estructura de la aplicacion es basicamente la misma.
 
 El lenguaje de funcionamiento de la app sigue "hardocodeado" a ingles. Cabe destacar que en la app STT no afecta este hecho, pues se utiliza un modelo bilingüe. No obstante, TTS utiliza dos modelos por separado, donde el lenguaje del payload afecta la seleccion de modelo.
 
-El modelo de TTS en español está presente en la aplicación, pero está comentado por cuetiones de simplificar la POC.
+El modelo de TTS en español está presente en la aplicación, pero está comentado por cuetiones de simplificar la POC. Faltan dos dependencias por añadir directamente al repositorio.
 
 ### PAYLOAD
 
