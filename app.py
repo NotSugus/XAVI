@@ -1,3 +1,4 @@
+#====== Importar dependencias ======#
 import os
 from dotenv import (load_dotenv, find_dotenv)
 
@@ -32,11 +33,10 @@ app = Flask('SpeechToText')
 path = "."
 
 #==== Importar modelos de TTS ====#
-import dummyTTS
 import soundfile as sf
 from nemo.collections.tts.models.base import SpectrogramGenerator, Vocoder
 
-import tts_es
+# import tts_es
 
 spec_generator = SpectrogramGenerator.from_pretrained(model_name="tts_en_fastpitch").cuda()
 vocoder = Vocoder.from_pretrained(model_name="tts_hifigan").cuda()
@@ -60,6 +60,8 @@ db = client[MONGO_DB]
 collection = db[MONGO_COL]
 
 #===== Funciones del programa =====#
+
+# Funcion que lee el texto de entrada en GCP de acuerdo al text_id 
 def readText(text_id, language):
     """
     Lee el texto que se encuentra en GCP
@@ -76,7 +78,8 @@ def readText(text_id, language):
         text = f.readline()
         return text
 
-
+# Funcion que genera el audio de salida en funcion del texto de entrada.
+# Regresa el audio_id con el cual identificar el audio generado
 def getAudio(text_id,language):
     """
     Genera el audio del texto descargado
@@ -90,10 +93,11 @@ def getAudio(text_id,language):
         spectrogram = spec_generator.generate_spectrogram(tokens=parsed)
         audio = vocoder.convert_spectrogram_to_audio(spec=spectrogram)
         sf.write(f"{audio_id}.wav", audio.to('cpu').detach().numpy()[0], 22050)
-    elif language == "spanish":
-        tts_es.AUDIO_ES(text,audio_id)
+    # elif language == "spanish":
+    #     tts_es.AUDIO_ES(text,audio_id)
     return audio_id
 
+# Genera el diccionario JSON para subida a MONGO
 def generateJson(session_id, gcp_filename, language):
     val = {'user_id': session_id,
            'uploadDate': datetime.datetime.utcnow(),
@@ -102,7 +106,7 @@ def generateJson(session_id, gcp_filename, language):
            'stage': 'audio generado'}
     return val
 
-
+# Sube el audio a GCP y el diccionario a MONGO
 def uploadAudio(language, audio_id, session_id):
     """
     Sube el audio obtenido a GCP

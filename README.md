@@ -26,13 +26,15 @@ En estas tres secciones, la estructura de la aplicacion es basicamente la misma.
 
 El lenguaje de funcionamiento de la app sigue "hardocodeado" a ingles. Cabe destacar que en la app STT no afecta este hecho, pues se utiliza un modelo bilingüe. No obstante, TTS utiliza dos modelos por separado, donde el lenguaje del payload afecta la seleccion de modelo.
 
-Hay un script dummy para los modelos TTS. Ignorar este archivo, pues es un "calientabancas" para los modelos verdaderos (se introdujo para reducir posibles errores durante el desarrollo de la app).
+El modelo de TTS en español está presente en la aplicación, pero está comentado por cuetiones de simplificar la POC.
 
 ### PAYLOAD
 
 NOTA: Falta por confirmar el formato final del json schema.
 
 *Formato de payload de entrada:*
+
+Se requiere el id de la sesión y del texto input del modelo, en conjunto con el idioma a utilizar para la  aplicación.
 
 ```
 {
@@ -42,7 +44,7 @@ NOTA: Falta por confirmar el formato final del json schema.
 }
 ```
 
-*Formato de payload de entrada:*
+*Formato de payload de salida:*
 
 ```
 {
@@ -59,6 +61,10 @@ NOTA: Falta por confirmar el formato final del json schema.
     }
 }
 ```
+
+### BUGS
+
+Actualmente, no bugs reportados para la POC.
 
 ## Servicios en la nube
 
