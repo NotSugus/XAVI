@@ -48,7 +48,7 @@ Se requiere el id de la sesión y del texto input del modelo, en conjunto con el
 
 ```
 {
-    "user_id": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
+    "session_id": "ca44a7d9-dd84-4222-99dc-5dfbf6ae5eb7",
     "uploadDate": {
         "$date": "2022-10-06T08:21:29.923Z"
     },
